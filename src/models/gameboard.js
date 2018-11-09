@@ -13,11 +13,11 @@ export class Cell {
     isRevealed: boolean;
     getRow: (number) => Row;
 
-    constructor(row: number, col: number, isMine: boolean) {
+    constructor(row: number, col: number) {
         this.row = row;
         this.col = col;
-        this.isMine = isMine;
 
+        this.isMine = false;
         this.isFlagged = false;
         this.isRevealed = false;
     }
@@ -84,7 +84,19 @@ export class Gameboard {
 
             for (let j = 0; j < cols.length; j++) {
                 const col = cols[j];
-                cells.push(new Cell(i, j, col === '#'));
+                const cell = new Cell(i, j);
+                cells.push(cell);
+
+                if (col === 'x') {
+                    cell.isMine = true;
+
+                } else if (col === '#') {
+                    cell.isRevealed = false;
+
+                } else {
+                    cell.isRevealed = true;
+                    cell.isMine = false;
+                }
             }
         }
 
@@ -156,7 +168,9 @@ export class Gameboard {
     toAscii(): string {
         return cellsToAscii(this.cells, c => {
             if (c) {
-                return c.isMine ? "#" : ".";
+                return c.isRevealed 
+                    ? c.isMine ? "x" : c.getNumberOfAdjacentMines().toString()
+                    : "#"
             } else {
                 return "?";
             }
@@ -189,7 +203,8 @@ export function groupByCol(cells: $ReadOnlyArray<Cell>): Array<Col> {
 export type CellRenderer = (?Cell) => string;
 export function cellsToAscii(cells: $ReadOnlyArray<Cell>, cellRenderer?: CellRenderer): string {
     const rows = groupByRow(cells);
-    const cr = cellRenderer || (cell => cellToAscii(3, cell));
+    const mostCharsPerCoordinate = 1;
+    const cr = cellRenderer || (cell => cellToAscii(mostCharsPerCoordinate, cell));
     return rows
             .map(r => rowToAscii(r, rows, cr))
             .join('\n');
@@ -231,7 +246,7 @@ function createEmptyCells(rows: number, cols: number): Array<Row> {
     for(let r=0; r < rows; r++) {
         const row = [];
         for(let c=0; c < cols; c++) {
-            row.push(new Cell(r, c, false));
+            row.push(new Cell(r, c));
         }
         rs.push(row);
     }
@@ -321,7 +336,7 @@ function addHorizontalPeak(row: number, s: Shape, box: Box, cfg: Config) {
     }
 }
 
-type Box = {
+export type Box = {
     top: number,
     bot: number,
     left: number,

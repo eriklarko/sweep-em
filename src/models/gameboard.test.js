@@ -8,7 +8,7 @@ describe('ascii-to-gameboard', () => {
         const ascii = `
         . . . .
         . . . .
-        . . . #
+        . . . x
         `;
 
         const gb = Gameboard.fromAscii(ascii);
@@ -26,9 +26,9 @@ describe('ascii-to-gameboard', () => {
 
 describe('getAdjacent', () => {
     const defaultBoard = Gameboard.fromAscii(`
-        # . .
-        . # # 
-        . # .
+        x . .
+        . x x 
+        . x .
     `);
 
     it('works away from corners', () => {
@@ -132,13 +132,33 @@ describe('getAdjacent', () => {
             `);
         }
     });
+
+    it('handles bug 1', () => {
+        const board = Gameboard.fromAscii(`
+            . x x
+            . . x
+            . . .
+        `);
+
+        const cell = board.cell(2, 1);
+        expect(cell).toBeDefined();
+        if (cell) {
+            expect(cell).toHaveAdjacentCells(`
+                (1,0) (1,1) [1,2]
+                (2,0) !2,1! (2,2)
+            `);
+
+            expect(cell).toHaveNumberOfAdjacentMines(1);
+        }
+
+    });
 });
 
 describe('count adjacent mines', () => {
     const defaultBoard = Gameboard.fromAscii(`
         . . . . . . 
-        . . # . . . 
-        . # . . . . 
+        . . x . . . 
+        . x . . . . 
         . . . . . . 
     `);
 

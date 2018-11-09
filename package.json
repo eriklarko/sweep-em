@@ -7,16 +7,17 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "eject": "expo eject",
-    "test": "NODE_ENV=development node node_modules/jest/bin/jest.js --watch"
+    "test": "NODE_ENV=development node node_modules/jest/bin/jest.js --watch",
+    "auto-flow": "find src tests | entr -c yarn flow"
   },
   "dependencies": {
-    "expo": "^30.0.1",
+    "expo": "^31.0.4",
     "knuth-shuffle": "^1.0.8",
-    "react": "16.3.1",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-30.0.0.tar.gz"
+    "react": "16.5.0",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.1.tar.gz"
   },
   "devDependencies": {
-    "flow-bin": "^0.83.0",
+    "flow-bin": "^0.86.0",
     "flow-typed": "^2.5.1",
     "jest": "^23.6.0"
   },
