@@ -19,11 +19,13 @@
   "devDependencies": {
     "flow-bin": "^0.86.0",
     "flow-typed": "^2.5.1",
-    "jest": "^23.6.0"
+    "jest": "^24.7.1"
   },
   "jest": {
     "preset": "react-native",
-    "setupTestFrameworkScriptFile": "./tests/beforeAll.js",
+    "setupFilesAfterEnv": [
+      "./tests/beforeAll.js"
+    ],
     "transform": {
       "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
     }
