@@ -1,22 +1,43 @@
 // @flow
 
 import { matcherHint } from 'jest-matcher-utils';
-import { findValidPlacements, parsePlacements } from '../src/models/placements.js';
+import prettyFormat from 'pretty-format';
+import { failWithUndefined } from './common.js';
+import { findValidPlacements, parsePlacement, parsePlacements, placementToString } from '../src/models/placements.js';
 import { cellsToAscii, Cell } from '../src/models/gameboard.js';
 import type { Gameboard } from '../src/models/gameboard.js';
 import type { Placement } from '../src/models/placements.js';
 
 expect.extend({
-    // Does not give good messages for .not
     // $FlowFixMe
-    toBePlacements(expecteds: Array<Placement>, board: Gameboard, rawActuals: Array<string>) {
-        const actuals = parsePlacements(rawActuals, board);
+    toBePlacement(actual: Placement|Array<Placement>, board: Gameboard, rawExpected: string) {
+        const expecteds = [ parsePlacement(rawExpected, board) ];
 
-        return toBePlacements(expecteds, actuals, board, this);
+        if (Array.isArray(actual)) {
+            if (actual.length !== 1) {
+                return {
+                    pass: false,
+                    message: () => `Expected array of length 1, got\n` 
+                        + this.utils.RECEIVED_COLOR(prettyFormat(actual))
+                }
+            }
+
+            return _toBePlacements(expecteds, actual, board, this);
+        }
+
+        return _toBePlacements(expecteds, [actual], board, this);
     },
 
-    // $FlowFixMe
-    toHaveValidPlacements(cell: ?Cell, board: Gameboard, placements: Array<string>) {
+    toBePlacements(actual: Placement|Array<Placement>, board: Gameboard, ...rawExpecteds: Array<string>) {
+        const expecteds = parsePlacements(rawExpecteds, board);
+        const actuals = Array.isArray(actual)
+            ? actual
+            : [actual];
+
+        return _toBePlacements(expecteds, actuals, board, this);
+    },
+
+    toHaveValidPlacements(cell: ?Cell, board: Gameboard, ...placements: Array<string>) {
         if (!cell) {
             return failWithUndefined(this, cell)
         }
@@ -24,13 +45,13 @@ expect.extend({
         const actuals = findValidPlacements(cell);
         const expecteds = parsePlacements(placements, board);
 
-        return toBePlacements(expecteds, actuals, board, this);
+        return _toBePlacements(expecteds, actuals, board, this);
     },
 });
 
-function toBePlacements(expecteds: Array<Placement>, actuals: Array<Placement>, board, jest) {
-    const missing = missingFromFirst(expecteds, actuals);
-    const extra   = missingFromFirst(actuals, expecteds);
+function _toBePlacements(expecteds: Array<Placement>, actuals: Array<Placement>, board: Gameboard, jest) {
+    const missing = _missing(actuals, expecteds);
+    const extra   = _extra(actuals, expecteds);
 
     return {
         pass: missing.length === 0 && extra.length === 0,
@@ -41,65 +62,51 @@ function toBePlacements(expecteds: Array<Placement>, actuals: Array<Placement>, 
         '\n\n' +
         (missing.length > 0
             ? 'Did not find\n' +
-            jest.utils.RECEIVED_COLOR(
-                missing.map(p => placementToString(board, p)).join('\n\n')
-            ) + 
-            '\nin\n' +
             jest.utils.EXPECTED_COLOR(
-                actuals.map(p => placementToString(board, p)).join('\n\n')
+                missing.map(p => placementToString(p, board)).join('\n\n')
             )
             : '') +
         (extra.length > 0
-            ? 'Unexpectedly found\n' +
+            ? '\n\nUnexpectedly found\n' +
             jest.utils.RECEIVED_COLOR(
-                extra.map(p => placementToString(board, p)).join('\n\n')
+                extra.map(p => placementToString(p, board)).join('\n\n')
             )
-            : '')
+            : '')/* +
+        "\n\nexpected\n" +
+            jest.utils.EXPECTED_COLOR(
+                expecteds.map(p => placementToString(p, board)).join('\n\n')
+            )*/
     };
 }
 
-function failWithUndefined(jest, actual) {
-    return {
-        pass: false,
-        message: () =>
-            matcherHint('.toBeDefined', 'received', '', {
-                isNot: jest.isNot,
-            }) +
-            '\n\n' +
-            `Received: ${jest.printReceived(actual)}`,
-    };
-}
-
-function missingFromFirst(first: Array<Map<Cell, boolean>>, second) {
+function _missing(actuals: Array<Placement>, expecteds: Array<Placement>) {
     const missing = [];
-    for (const f of first) {
-        const found = second.find( s => placementsEqual(f, s));
+
+    for (const expected of expecteds) {
+
+        const found = actuals.find( actual => placementsEqual(actual, expected));
         if (!found) {
-            missing.push(f);
+            missing.push(expected);
         }
     }
 
     return missing;
 }
 
-function placementsEqual(a, b) {
-    return Array.from(a.keys())
-        .every( cell => a.get(cell) === b.get(cell) );
+function _extra(actuals: Array<Placement>, expecteds: Array<Placement>) {
+    const extra = [];
+
+    for (const actual of actuals) { 
+        const found = expecteds.find( expected => placementsEqual(actual, expected));
+        if (!found) {
+            extra.push(actual);
+        }
+    }
+
+    return extra;
 }
 
-function placementToString(board, placement) {
-    return cellsToAscii(board.cells, c => {
-        if (!c) {
-            return "?";
-        }
-
-        const lol = placement.get(c);
-        if (lol) {
-            return lol ? "Y" : "N"
-        }
-
-        return c.isRevealed
-            ? c.getNumberOfAdjacentMines().toString()
-            : '#';
-    });
+function placementsEqual(a: Placement, b: Placement) {
+    return a.size === b.size && Array.from(a.keys())
+        .every( cell => a.get(cell) === b.get(cell) );
 }

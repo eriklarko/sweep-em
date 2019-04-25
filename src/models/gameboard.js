@@ -12,6 +12,7 @@ export class Cell {
     isFlagged: boolean;
     isRevealed: boolean;
     getRow: (number) => Row;
+    _adjacentMines: number;
 
     constructor(row: number, col: number) {
         this.row = row;
@@ -43,6 +44,11 @@ export class Cell {
     }
 
     getNumberOfAdjacentMines(): number {
+        // for testing purposes only
+        if (this._adjacentMines) {
+            return this._adjacentMines;
+        }
+
         let mines = 0;
         for (const adj of this.getAdjacent()) {
             if (adj.isMine) {
@@ -60,6 +66,12 @@ export class Cell {
             }
         }
         return flags;
+    }
+
+    foo() {
+        const s =  this.row + ", " + this.col;
+        console.log("KUKFITTA", s);
+        return s
     }
 }
 
@@ -93,6 +105,10 @@ export class Gameboard {
                 } else if (col === '#') {
                     cell.isRevealed = false;
 
+                } else if (/\d/.test(col)) {
+                    cell._adjacentMines = col;
+                    cell.isRevealed = true;
+                    cell.isMine = false;
                 } else {
                     cell.isRevealed = true;
                     cell.isMine = false;

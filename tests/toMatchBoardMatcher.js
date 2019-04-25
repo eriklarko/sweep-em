@@ -1,11 +1,15 @@
 // @flow
 
+import { failWithUndefined } from './common.js';
 import { cellsToAscii } from '../src/models/gameboard.js';
 import type { Cell } from '../src/models/gameboard.js';
 
 expect.extend({
     // Does not give good messages for .not
-    toHaveAdjacentCells(received: Cell, expectedBoardString: string) {
+    toHaveAdjacentCells(received: ?Cell, expectedBoardString: string) {
+        if (!received) {
+            return failWithUndefined(this, received);
+        }
 
         expectedBoardString = indentRows(expectedBoardString, '    ');
         const adjacent = received.getAdjacent();
@@ -41,8 +45,13 @@ expect.extend({
     },
 
     // Does not give good messages for .not
-    toHaveNumberOfAdjacentMines(received: Cell, expectedNumberOfMines: string) {
-        const actual = received.getNumberOfAdjacentMines();
+    toHaveNumberOfAdjacentMines(received: ?Cell, expectedNumberOfMines: string) {
+        if (!received) {
+            return failWithUndefined(this, received);
+        }
+
+        const r = received;
+        const actual = r.getNumberOfAdjacentMines();
         const passed = actual === expectedNumberOfMines;
         const message = () => {
             return "Expected "
@@ -54,7 +63,7 @@ expect.extend({
                     actual
                 )
                 + "\n"
-                + this.utils.RECEIVED_COLOR(cellsToAscii(received.getAdjacent()))
+                + this.utils.RECEIVED_COLOR(cellsToAscii(r.getAdjacent()))
             ;
         };
         return {

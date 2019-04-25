@@ -141,16 +141,12 @@ describe('getAdjacent', () => {
         `);
 
         const cell = board.cell(2, 1);
-        expect(cell).toBeDefined();
-        if (cell) {
-            expect(cell).toHaveAdjacentCells(`
-                (1,0) (1,1) [1,2]
-                (2,0) !2,1! (2,2)
-            `);
+        expect(cell).toHaveAdjacentCells(`
+            (1,0) (1,1) [1,2]
+            (2,0) !2,1! (2,2)
+        `);
 
-            expect(cell).toHaveNumberOfAdjacentMines(1);
-        }
-
+        expect(cell).toHaveNumberOfAdjacentMines(1);
     });
 });
 
