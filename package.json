@@ -11,10 +11,12 @@
     "auto-flow": "find src tests | entr -c yarn flow"
   },
   "dependencies": {
+    "@babel/plugin-transform-react-jsx-source": "^7.2.0",
     "expo": "^32.0.6",
     "knuth-shuffle": "^1.0.8",
     "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.1.tar.gz"
+    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+    "react-navigation": "^3.0.9"
   },
   "devDependencies": {
     "flow-bin": "^0.97.0",

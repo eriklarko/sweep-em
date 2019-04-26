@@ -2,7 +2,7 @@
 
 import { parsePlacement, findValidPlacements, consolidate } from './placements.js';
 import { Gameboard } from './gameboard.js';
-import type { Cell }  from './gameboard.js';
+import type { Cell }  from './cell.js';
 
 describe("consolidate placements", () => {
     it("merges non-contradictory data", () => {

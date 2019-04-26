@@ -2,85 +2,16 @@
 
 import { knuthShuffle } from 'knuth-shuffle';
 import { Point } from './point.js';
+import { Cell } from './cell.js';
+import type { Coord } from './coord.js';
 
 export type Row = Array<Cell>;
 export type Col = Array<Cell>;
-export class Cell {
-    row: number; 
-    col: number;
-    isMine: boolean;
-    isFlagged: boolean;
-    isRevealed: boolean;
-    getRow: (number) => Row;
-    _adjacentMines: number;
-
-    constructor(row: number, col: number) {
-        this.row = row;
-        this.col = col;
-
-        this.isMine = false;
-        this.isFlagged = false;
-        this.isRevealed = false;
-    }
-
-    getAdjacent(): $ReadOnlyArray<Cell> {
-        const r = this.getRow(this.row);
-        const rAbove = this.getRow(this.row-1);
-        const rBelow = this.getRow(this.row+1);
-
-        return [
-            ...rAbove.filter(c => this.isAtMostOneColAway(c)),
-            ...r.filter(c => !this.isSame(c) && this.isAtMostOneColAway(c)),
-            ...rBelow.filter(c => this.isAtMostOneColAway(c)),
-        ];
-    }
-
-    isSame(other: Cell): boolean {
-        return this.row === other.row && this.col === other.col;
-    }
-
-    isAtMostOneColAway(other: Cell): boolean {
-        return Math.abs(other.col - this.col) <= 1;
-    }
-
-    getNumberOfAdjacentMines(): number {
-        // for testing purposes only
-        if (this._adjacentMines) {
-            return this._adjacentMines;
-        }
-
-        let mines = 0;
-        for (const adj of this.getAdjacent()) {
-            if (adj.isMine) {
-                mines++;
-            }
-        }
-        return mines;
-    }
-
-    numAdjacentFlags(): number {
-        let flags = 0;
-        for (const adj of this.getAdjacent()) {
-            if (adj.isFlagged) {
-                flags++;
-            }
-        }
-        return flags;
-    }
-
-    foo() {
-        const s =  this.row + ", " + this.col;
-        console.log("KUKFITTA", s);
-        return s
-    }
-}
-
-type Coords = { row: number, col: number};
 type Config = {
     rows: number,
     cols: number,
     mines: number,
-    startingCell: Coords,
+    startingCell: Coord,
 };
 export class Gameboard {
 
@@ -89,7 +20,7 @@ export class Gameboard {
             .map(r => r.trim())
             .filter(r => r.length > 0);
 
-        const cells = [];
+        const cells: Array<Cell> = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const cols = row.split(' ');
@@ -106,6 +37,7 @@ export class Gameboard {
                     cell.isRevealed = false;
 
                 } else if (/\d/.test(col)) {
+                    // $FlowFixMe: col is a number here because of the regex above
                     cell._adjacentMines = col;
                     cell.isRevealed = true;
                     cell.isMine = false;
@@ -125,19 +57,16 @@ export class Gameboard {
 
         placeMines(rows, cfg, noMinesCoords);
 
-        return new Gameboard(rows);
+        return new Gameboard(flatten(rows));
     }
 
     cells: $ReadOnlyArray<Cell>;
-    constructor(rows: Array<Row>) {
-        this.cells = this._flatten(rows);
+
+    constructor(cells: Array<Cell>) {
+        this.cells = cells;
 
         const rowFunc = this.row.bind(this);
         this.cells.forEach(c => c.getRow = rowFunc);
-    }
-
-    _flatten(rows: Array<Row>): Array<Cell> {
-        return [].concat.apply([], rows);
     }
 
     cell(row: number, col: number): ?Cell {
@@ -156,12 +85,13 @@ export class Gameboard {
         return groupByCol(this.cells);
     }
 
-    reveal(coords: Coords): Array<Cell> {
-
+    reveal(coords: Coord): Array<Cell> {
         return this._reveal(coords.row, coords.col, [])
     }
 
     _reveal(row: number, col: number, revealed: Array<Cell>): Array<Cell> {
+        console.log("revealing", row, col);
+
         const revealedCell = this.cell(row, col);
         if (!revealedCell) {
             return revealed;
@@ -192,6 +122,10 @@ export class Gameboard {
             }
         });
     }
+}
+
+function flatten(rows: Array<Row>): Array<Cell> {
+    return [].concat.apply([], rows);
 }
 
 export function groupByRow(cells: $ReadOnlyArray<Cell>): Array<Row> {

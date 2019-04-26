@@ -1,7 +1,8 @@
 // @flow
 
 import { cellsToAscii } from './gameboard.js';
-import type { Gameboard, Cell } from './gameboard.js';
+import type { Gameboard } from './gameboard.js';
+import { Cell } from './cell.js';
 
 export class Placement extends Map<Cell, boolean> {
     source: Cell;

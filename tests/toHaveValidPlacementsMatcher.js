@@ -4,7 +4,8 @@ import { matcherHint } from 'jest-matcher-utils';
 import prettyFormat from 'pretty-format';
 import { failWithUndefined } from './common.js';
 import { findValidPlacements, parsePlacement, parsePlacements, placementToString } from '../src/models/placements.js';
-import { cellsToAscii, Cell } from '../src/models/gameboard.js';
+import { cellsToAscii } from '../src/models/gameboard.js';
+import { Cell } from '../src/models/cell.js';
 import type { Gameboard } from '../src/models/gameboard.js';
 import type { Placement } from '../src/models/placements.js';
 

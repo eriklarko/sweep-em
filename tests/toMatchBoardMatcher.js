@@ -2,7 +2,7 @@
 
 import { failWithUndefined } from './common.js';
 import { cellsToAscii } from '../src/models/gameboard.js';
-import type { Cell } from '../src/models/gameboard.js';
+import type { Cell } from '../src/models/cell.js';
 
 expect.extend({
     // Does not give good messages for .not

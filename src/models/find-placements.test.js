@@ -1,7 +1,8 @@
 // @flow
 
 import { findValidPlacements, parsePlacements, consolidate } from './placements.js';
-import { Gameboard, Cell, cellsToAscii } from './gameboard.js';
+import { Gameboard, cellsToAscii } from './gameboard.js';
+import { Cell } from './cell.js';
 
 it("returns placements for cells at the edges", () => {
     const board = Gameboard.fromAscii(`
