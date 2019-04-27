@@ -7,6 +7,8 @@ import type { Cell } from '../models/cell.js';
 
 type Props = {
     onPress: () => void,
+    onPressIn: () => void,
+    onPressOut: () => void,
 }
 type State = {
     state: 'pressed' | 'released'
@@ -20,18 +22,26 @@ export class NotStartedCell extends React.Component<Props, State> {
         }
     }
 
+    _pressIn() {
+        if (this.state.state === "released") {
+            this.setState({state: "pressed"});
+        }
+        this.props.onPressIn();
+    }
+
+    _pressOut() {
+        if (this.state.state === "pressed") {
+            this.setState({state: "released"});
+        }
+        this.props.onPressOut();
+    }
+
     render() {
 
         return <TouchableWithoutFeedback
             style={{ flex: 1 }}
-            onPressIn={this.state.state === "released" 
-                ? () => this.setState({state: "pressed"})
-                : null
-            }
-            onPressOut={this.state.state === "pressed" 
-                ? () => this.setState({state: "released"})
-                : null
-            }
+            onPressIn={() => this._pressIn() }
+            onPressOut={() => this._pressOut() }
             onPress={this.props.onPress} >
 
                 <View style={this._getStyle()} />
@@ -43,26 +53,32 @@ export class NotStartedCell extends React.Component<Props, State> {
         return styles[this.state.state];
     }
 }
-export class StartedCell extends React.Component<{cell: Cell, onPress: ()=>void},{}> {
 
-    render() {
-        const { cell } = this.props;
-        if (cell.isRevealed) {
-            return <View style={styles.revealedWrapper}>
-                { this._renderRevealedCell() }
-            </View>
+type StartedProps = Props & {
+    cell: Cell,
+}
+export function StartedCell(props: StartedProps) {
 
-        } else {
-            return <NotStartedCell onPress={ () => {
-                this.props.onPress()
-                //this.forceUpdate();
-            }} />
-        }
+    const { cell } = props;
+    if (cell.isRevealed) {
+        return <View style={styles.revealedWrapper}>
+            { renderRevealedCell() }
+        </View>
+
+    } else if (cell.isFlagged) {
+        return <View style={styles.released}>
+            <Text>F</Text>
+        </View>
+   
+    } else {
+        return <NotStartedCell 
+            onPress={ props.onPress }
+            onPressIn={ props.onPressIn }
+            onPressOut={ props.onPressOut }
+        />
     }
 
-    _renderRevealedCell() {
-        const { cell } = this.props;
-
+    function renderRevealedCell() {
         if (cell.isMine) {
             return <Text>*</Text>
         } else {
@@ -73,16 +89,17 @@ export class StartedCell extends React.Component<{cell: Cell, onPress: ()=>void}
         }
     }
 }
-const adjacentColors = {
-    1: "blue",
-    2: "green",
-    3: "red",
-    4: "darkblue",
-    5: "brown",
-    6: "Cyan",
-    7: "Black",
-    8: "Grey",
-};
+const adjacentColors = [
+    null,       // 0
+    "blue",     // 1
+    "green",    // 2
+    "red",      // 3
+    "darkblue", // 4
+    "brown",    // 5
+    "Cyan",     // 6
+    "Black",    // 7
+    "Grey",     // 8
+];
 
 const lightBorder = "white";
 const darkBorder = "grey";

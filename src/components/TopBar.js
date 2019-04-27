@@ -5,18 +5,23 @@ import { Text, View, Button } from 'react-native';
 
 type Props = {
     onRestart: () => void,
-    onFlagged: () => void,
-    onGameEnd: (success: boolean) => void,
-    onPressIn: () => void,
-    onPressOut: () => void,
+    cellDown: boolean,
+    gameStatus: 'ongoing' | 'success' | 'failure',
+    mines: number,
 };
-export class TopBar extends React.Component<Props, {}> {
+export function TopBar(props: Props) {
+    return <View>
+        <Text>{props.mines}</Text>
+        <Button onPress={props.onRestart} title={
+            props.gameStatus === 'success'
+                ? "YAY"
 
-    render() {
-        return <View>
-            <Text>lol</Text>
-            <Button onPress={this.props.onRestart} title={"r"} />
-        </View>
-    }
+                : props.gameStatus === 'failure'
+                ? ":("
+
+                : props.cellDown
+                ? "v"
+                : "restart" } />
+    </View>
 }
 

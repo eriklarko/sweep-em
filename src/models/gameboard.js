@@ -93,20 +93,20 @@ export class Gameboard {
 
     reveal(coords: Coord): Array<Cell> {
         const revealed = this._reveal(coords.row, coords.col, [])
+
         if (revealed.some(cell => cell.isMine)) {
             this._onGameEnd(false);
-            return;
-        }
 
-        if (this._unrevealedNonMinesLeft() <= 0) {
+        } else if (this._unrevealedNonMinesLeft() <= 0) {
             this.cells.forEach(cell => {
                 if (cell.isMine) {
                     cell.isFlagged = true;
                 }
             })
             this._onGameEnd(true);
-            return;
         }
+
+        return revealed;
     }
 
     _reveal(row: number, col: number, revealed: Array<Cell>): Array<Cell> {

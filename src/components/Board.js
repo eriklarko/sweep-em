@@ -15,7 +15,8 @@ type Props = {
     mines: number,
 }
 type State = {
-    state: 'not-started' | 'loading' | Gameboard
+    state: 'not-started' | 'loading' | Gameboard,
+    cellDown: boolean,
 }
 
 export class BoardComponent extends React.Component<Props, State> {
@@ -25,6 +26,7 @@ export class BoardComponent extends React.Component<Props, State> {
 
         this.state = {
             state: 'not-started',
+            cellDown: false,
         };
     }
 
@@ -64,10 +66,23 @@ export class BoardComponent extends React.Component<Props, State> {
             }}>
                 <TopBar
                     onRestart={ () => this._restart() }
+                    cellDown={this.state.cellDown}
+                    mines={10}
+                    gameStatus={this._getGameStatus()}
                     />
             </View>
             { this._renderBoard() }
         </View>
+    }
+
+    _getGameStatus() {
+        switch(this.state.state) {
+            case 'not-started':
+            case 'loading':
+                return 'ongoing';
+            default:
+                return this.state.state.gameResult || 'ongoing';
+        }
     }
 
     _renderBoard() {
@@ -79,6 +94,8 @@ export class BoardComponent extends React.Component<Props, State> {
                         renderCell={ coords => <NotStartedCell 
                             key={"cell"+coords.row+coords.col}
                             onPress={ () => this._enterLoadingState(coords) }
+                            onPressIn={() => this.setState({ cellDown: true })}
+                            onPressOut={() => this.setState({ cellDown: false })}
                         /> }
                     />
 
@@ -86,12 +103,22 @@ export class BoardComponent extends React.Component<Props, State> {
                 return <Text>Loading...</Text>
 
             default:
-                return <Started board={this.state.state} />
+                return <Started
+                            board={this.state.state}
+                            onPressIn={() => this.setState({ cellDown: true })}
+                            onPressOut={() => this.setState({ cellDown: false })}
+                />
         }
     }
 }
 
-class Started extends React.Component<{ board: Gameboard }, {}> { 
+
+type StartedProps = {
+    board: Gameboard,
+    onPressIn: () => void,
+    onPressOut: () => void,
+};
+class Started extends React.Component<StartedProps, {}> { 
 
     onCellPress(coords: Coord) {
         const { board } = this.props;
@@ -103,11 +130,6 @@ class Started extends React.Component<{ board: Gameboard }, {}> {
 
     render() {
         const { board } = this.props;
-        if (board.isFinished()) {
-            Alert.alert("finished!", "result: " + board.gameResult);
-        }
-
-
         return <CellGrid 
                     rows={board.rows().length}
                     cols={board.cols().length}
@@ -115,6 +137,8 @@ class Started extends React.Component<{ board: Gameboard }, {}> {
                         key={"cell"+coords.row+coords.col}
                         cell={board.cellAt(coords)}
                         onPress={() => this.onCellPress(coords)}
+                        onPressIn={this.props.onPressIn}
+                        onPressOut={this.props.onPressOut}
                     /> }
                 />
     }
