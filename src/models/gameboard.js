@@ -61,12 +61,18 @@ export class Gameboard {
     }
 
     cells: $ReadOnlyArray<Cell>;
+    gameResult: null | 'success' | 'failure';
 
     constructor(cells: Array<Cell>) {
         this.cells = cells;
+        this.gameResult = null;
 
         const rowFunc = this.row.bind(this);
         this.cells.forEach(c => c.getRow = rowFunc);
+    }
+
+    cellAt(coords: Coord): ?Cell {
+        return this.cell(coords.row, coords.col);
     }
 
     cell(row: number, col: number): ?Cell {
@@ -86,12 +92,24 @@ export class Gameboard {
     }
 
     reveal(coords: Coord): Array<Cell> {
-        return this._reveal(coords.row, coords.col, [])
+        const revealed = this._reveal(coords.row, coords.col, [])
+        if (revealed.some(cell => cell.isMine)) {
+            this._onGameEnd(false);
+            return;
+        }
+
+        if (this._unrevealedNonMinesLeft() <= 0) {
+            this.cells.forEach(cell => {
+                if (cell.isMine) {
+                    cell.isFlagged = true;
+                }
+            })
+            this._onGameEnd(true);
+            return;
+        }
     }
 
     _reveal(row: number, col: number, revealed: Array<Cell>): Array<Cell> {
-        console.log("revealing", row, col);
-
         const revealedCell = this.cell(row, col);
         if (!revealedCell) {
             return revealed;
@@ -109,6 +127,20 @@ export class Gameboard {
             }
         }
         return revealed;
+    }
+
+    _unrevealedNonMinesLeft(): number {
+        return this.cells.filter(cell => {
+            return !cell.isRevealed && !cell.isMine;
+        }).length;
+    }
+
+    _onGameEnd(success: boolean) {
+        this.gameResult = success ? 'success' : 'failure';
+    }
+
+    isFinished(): boolean {
+        return this.gameResult != null;
     }
 
     toAscii(): string {

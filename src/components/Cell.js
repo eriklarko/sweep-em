@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import { View, TouchableWithoutFeedback } from 'react-native';
+import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import type { Coord } from '../models/coord.js';
 import type { Cell } from '../models/cell.js';
 
@@ -9,9 +9,9 @@ type Props = {
     onPress: () => void,
 }
 type State = {
-    state: 'revealed' | 'pressed' | 'released'
+    state: 'pressed' | 'released'
 }
-export class CellComponent extends React.Component<Props, State> {
+export class NotStartedCell extends React.Component<Props, State> {
 
     constructor() {
         super();
@@ -21,6 +21,7 @@ export class CellComponent extends React.Component<Props, State> {
     }
 
     render() {
+
         return <TouchableWithoutFeedback
             style={{ flex: 1 }}
             onPressIn={this.state.state === "released" 
@@ -42,6 +43,46 @@ export class CellComponent extends React.Component<Props, State> {
         return styles[this.state.state];
     }
 }
+export class StartedCell extends React.Component<{cell: Cell, onPress: ()=>void},{}> {
+
+    render() {
+        const { cell } = this.props;
+        if (cell.isRevealed) {
+            return <View style={styles.revealedWrapper}>
+                { this._renderRevealedCell() }
+            </View>
+
+        } else {
+            return <NotStartedCell onPress={ () => {
+                this.props.onPress()
+                //this.forceUpdate();
+            }} />
+        }
+    }
+
+    _renderRevealedCell() {
+        const { cell } = this.props;
+
+        if (cell.isMine) {
+            return <Text>*</Text>
+        } else {
+            const adjMines = cell.getNumberOfAdjacentMines();
+            return <Text style={styles.revealed(adjMines)}>
+              {adjMines === 0 ? null : adjMines}
+            </Text>
+        }
+    }
+}
+const adjacentColors = {
+    1: "blue",
+    2: "green",
+    3: "red",
+    4: "darkblue",
+    5: "brown",
+    6: "Cyan",
+    7: "Black",
+    8: "Grey",
+};
 
 const lightBorder = "white";
 const darkBorder = "grey";
@@ -53,9 +94,16 @@ const commonStyle = {
     borderWidth: 1,
 };
 const styles = {
-    revealed: Object.assign({}, commonStyle, {
-        backgroundColor: "red",
+    revealedWrapper: Object.assign({}, commonStyle, {
+            backgroundColor: "grey",
     }),
+    revealed: (adjMines: number) => {
+        return {
+            color: adjacentColors[adjMines],
+            textAlign: "center",
+            fontWeight: "bold",
+        };
+    }, 
     pressed: Object.assign({}, commonStyle, {
         backgroundColor: "darkgrey",
 

@@ -2,13 +2,12 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import { CellComponent } from './Cell.js';
 import type { Coord } from '../models/coord.js';
 
 type Props = {
     rows: number,
     cols: number,
-    onCellPress: (Coord) => void,
+    renderCell: (Coord) => void,
 }
 export function CellGrid(props: Props) { 
 
@@ -31,11 +30,8 @@ export function CellGrid(props: Props) {
     function generateRow(rowIndex, numCols) {
         const row = [];
         for (let col=0; col < numCols; col++) {
-            const cell = <CellComponent 
-                key={"cell"+rowIndex+col} 
-                onPress={() => props.onCellPress({ row: rowIndex, col: col })}
-            />
-            row.push(cell)
+            const cell = props.renderCell({ row: rowIndex, col: col });
+            row.push(cell);
         }
         return row;
     }

@@ -7,15 +7,10 @@ export default class App extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <View style={{
-                    height: 40,
-                    width: "100%",
-                    backgroundColor: "green",
-                }} />
                 <BoardComponent
                     rows={ 10 }
                     cols={ 10 }
-                    mines={ 20 }
+                    mines={ 2 }
                 />
             </View>
         );
